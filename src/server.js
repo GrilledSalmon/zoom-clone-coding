@@ -17,4 +17,14 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server }); // 하나의 서버에서 http와 ws을 둘 다 작동시키기 위해
 
-server.listen(3000, handleListen)
+
+wss.on("connection", (socket) => {  // 연결된 socket에 대해 아래의 동일한 코드를 실행시켜줌
+    console.log("Connectd to Browser!!✔");
+    socket.on("close", () => console.log("Disconnected from the Browser..."));
+    socket.on("message", (message) => {
+        console.log(message.toString('utf-8'));
+    });
+    socket.send("hello!!!");
+});
+
+server.listen(3000, handleListen);
