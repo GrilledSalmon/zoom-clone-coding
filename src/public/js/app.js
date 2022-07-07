@@ -57,11 +57,15 @@ function handleRoomSubmit(event) {
 enterRoom.addEventListener("submit", handleRoomSubmit);
 nameForm.addEventListener("submit", handleNicknameSubmit);
 
-socket.on("welcome", (user) => {
+socket.on("welcome", (user, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room : ${roomName} (${newCount})`;
     addMessage(`${user} Arrived!`);
 });
 
-socket.on("bye", (user) => {
+socket.on("bye", (user, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room : ${roomName} (${newCount})`;
     addMessage(`${user} Left!`);
 });
 
@@ -75,4 +79,4 @@ socket.on("room_change", (rooms) => {
         li.innerText = room;
         roomList.append(li);
     });
-}); // 방 생성 공지
+}); // 방 변경 공지
