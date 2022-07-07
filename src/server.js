@@ -39,10 +39,15 @@ wsServer.on("connection", (socket) => {
         socket.join(roomName); // 방 만들기
         done(`You Entered the Room : ${roomName}`);
         socket.to(roomName).emit("welcome", socket.nickname); // roomName이라는 방에 속한 나를 제외한 모든 socket들에게 메시지 보내기
+        wsServer.sockets.emit("room_change", publicRooms()); // 모든 socket에게 공지
     });
 
     socket.on("disconnecting", () => {
         socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname));
+    });
+    
+    socket.on("disconnect", () => {
+        wsServer.sockets.emit("room_change", publicRooms());
     });
 
     socket.on("new_message", (msg, room, done) => {

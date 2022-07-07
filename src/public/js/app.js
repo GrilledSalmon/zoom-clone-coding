@@ -66,3 +66,13 @@ socket.on("bye", (user) => {
 });
 
 socket.on("new_message", addMessage)
+
+socket.on("room_change", (rooms) => {
+    const roomList = welcome.querySelector('ul');
+    roomList.innerHTML = "";
+    rooms.forEach(room => {
+        const li = document.createElement("li");
+        li.innerText = room;
+        roomList.append(li);
+    });
+}); // 방 생성 공지
