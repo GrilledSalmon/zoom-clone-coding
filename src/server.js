@@ -16,11 +16,23 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
+    socket.onAny((event) => {
+        console.log(`Socket event '${event}' occured!`);
+    });
+
     socket.on("enter_room", (roomName, done) => {
-        console.log(roomName);
-        setTimeout(() => {
-            done("Hello from the Back-End");
-        }, 10000);
+        socket.join(roomName); // 방 만들기
+        done(`You Entered the Room : ${roomName}`);
+        socket.to(roomName).emit("welcome"); // roomName이라는 방에 속한 나를 제외한 모든 socket들에게 메시지 보내기
+    });
+
+    socket.on("disconnecting", () => {
+        socket.rooms.forEach(room => socket.to(room).emit("bye"));
+    });
+
+    socket.on("new_message", (msg, room, done) => {
+        socket.to(room).emit("new_message", msg);
+        done();
     });
 })
 
