@@ -14,9 +14,6 @@ socket.addEventListener("open", () => {
 
 socket.addEventListener("message", (message) => {
     console.log("New message : ", message.data, "from the server.");
-    const li = document.createElement("li");
-    li.innerText = message.data;
-    messageList.append(li);
 })
 
 socket.addEventListener("close", () => {
@@ -32,6 +29,9 @@ function handleSubmit(event) {
     event.preventDefault(); // submit event가 일어났을 때 기본적으로 발생하는 이벤트(reload)를 막아주는듯
     const input = messageForm.querySelector("input");
     socket.send(makeMessage("new_message", input.value));
+    const li = document.createElement("li");
+    li.innerText = `You : ${input.value}`;
+    messageList.append(li);
     input.value = "";
 }
 

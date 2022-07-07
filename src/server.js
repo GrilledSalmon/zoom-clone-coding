@@ -40,4 +40,4 @@ wss.on("connection", (socket) => {  // 연결된 socket에 대해 아래의 동�
     });
 });
 
-server.listen(3000, handleListen);
+server.listen(8000, handleListen);
