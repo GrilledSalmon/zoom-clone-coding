@@ -1,46 +1,18 @@
-const messageList = document.querySelector("ul");
-const nickForm = document.querySelector("#nick");
-const messageForm = document.querySelector("#message");
-const socket = new WebSocket(`ws://${window.location.host}`);
+const socket = io();
 
-function makeMessage(type, payload) {
-    const msg = {type, payload};
-    return JSON.stringify(msg);
+const welcome = document.getElementById("welcome");
+const form = welcome.querySelector("form");
+
+function backendDone(msg) {
+    console.log(`Back-End says :`, msg);
 }
 
-socket.addEventListener("open", () => {
-    console.log("Connectd to Server!!✔");
-})
-
-socket.addEventListener("message", (message) => {
-    console.log("New message : ", message.data, "from the server.");
-})
-
-socket.addEventListener("close", () => {
-    console.log("Disconnected from Server 😢");
-})
-
-// setTimeout(() => {
-//     socket.send("Hello from the Chrome ^^");
-// }, 5000);  // 10초 뒤에 일어나도록
-
-
-function handleSubmit(event) {
-    event.preventDefault(); // submit event가 일어났을 때 기본적으로 발생하는 이벤트(reload)를 막아주는듯
-    const input = messageForm.querySelector("input");
-    socket.send(makeMessage("new_message", input.value));
-    const li = document.createElement("li");
-    li.innerText = `You : ${input.value}`;
-    messageList.append(li);
+function handleRoomSubmit(event) {
+    event.preventDefault();
+    const input = form.querySelector("input");
+    // emit method의 마지막 인자로 함수를 넣어주면 back에서 front에 실행시켜준다?
+    socket.emit("enter_room", input.value, backendDone); 
     input.value = "";
 }
 
-function handleNickSubmit(event) {
-    event.preventDefault();
-    const input = nickForm.querySelector("input");
-    socket.send(makeMessage("nickname", input.value));
-    input.value = "Created!";
-}
-
-messageForm.addEventListener("submit", handleSubmit);
-nickForm.addEventListener("submit", handleNickSubmit);
+form.addEventListener("submit", handleRoomSubmit);
