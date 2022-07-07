@@ -16,6 +16,7 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
+    socket["nickname"] = "Anonymous";
     socket.onAny((event) => {
         console.log(`Socket event '${event}' occured!`);
     });
@@ -23,17 +24,21 @@ wsServer.on("connection", (socket) => {
     socket.on("enter_room", (roomName, done) => {
         socket.join(roomName); // 방 만들기
         done(`You Entered the Room : ${roomName}`);
-        socket.to(roomName).emit("welcome"); // roomName이라는 방에 속한 나를 제외한 모든 socket들에게 메시지 보내기
+        socket.to(roomName).emit("welcome", socket.nickname); // roomName이라는 방에 속한 나를 제외한 모든 socket들에게 메시지 보내기
     });
 
     socket.on("disconnecting", () => {
-        socket.rooms.forEach(room => socket.to(room).emit("bye"));
+        socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname));
     });
 
     socket.on("new_message", (msg, room, done) => {
-        socket.to(room).emit("new_message", msg);
+        socket.to(room).emit("new_message", `${socket.nickname} :  ${msg}`);
         done();
     });
+
+    socket.on("nickname", nickname => {
+        socket["nickname"] = nickname;
+    })
 })
 
 // const wss = new WebSocket.Server({ server }); // 하나의 서버에서 http와 ws을 둘 다 작동시키기 위해
