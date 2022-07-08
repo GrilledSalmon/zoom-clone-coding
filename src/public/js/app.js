@@ -122,14 +122,22 @@ socket.on("welcome", async () => { // Peer A가 수행
 });
 
 socket.on("offer", async (offer) => {   // Peer B가 수행
+    console.log("Recieved the offer");
     myPeerConnection.setRemoteDescription(offer); // peer의 description을 offer에 세팅?
     const answer = await myPeerConnection.createAnswer();
     myPeerConnection.setLocalDescription(answer);
     socket.emit("answer", answer, roomName);
+    console.log("Sent the answer");
 })
 
 socket.on("answer", answer => { // Peer A가 수행
+    console.log("Recieved the answer");
     myPeerConnection.setRemoteDescription(answer);
+})
+
+socket.on("ice", ice => {
+    console.log("Recieved candidate");
+    myPeerConnection.addIceCandidate(ice);
 })
 
 
@@ -137,7 +145,20 @@ socket.on("answer", answer => { // Peer A가 수행
 
 function makeConnection(){
     myPeerConnection = new RTCPeerConnection();
+    myPeerConnection.addEventListener("icecandidate", handleIce);
+    myPeerConnection.addEventListener("addstream", handleAddStream);
     myStream
         .getTracks()
         .forEach(track => myPeerConnection.addTrack(track, myStream)); 
+}
+
+function handleIce(data) {
+    console.log("Sent candidate");
+    socket.emit("ice", data.candidate, roomName);
+}
+
+function handleAddStream(data) {
+    const peersStream = document.getElementById("peerFace");
+    console.log("Got a Stream form my peer!!");
+    peersStream.srcObject = data.stream;
 }
