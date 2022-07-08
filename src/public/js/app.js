@@ -93,17 +93,18 @@ camerasSelect.addEventListener("input", handleCameraChange);
 const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
-async function startMedia() {
+async function initCall() {
     welcome.hidden = true;
     call.hidden = false;
     await getMedia();
-    makeConnection();
+    makeConnection();   // addStream 역할
 }
 
-function handleWelcomeSubmit(event) {
+async function handleWelcomeSubmit(event) {
     event.preventDefault();
     const input = welcomeForm.querySelector("input");
-    socket.emit("joinRoom", input.value, startMedia);
+    await initCall();
+    socket.emit("joinRoom", input.value);
     roomName = input.value;
     input.value = "";
 }
@@ -113,15 +114,22 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 // Socket Code
 
-socket.on("welcome", async () => {
+socket.on("welcome", async () => { // Peer A가 수행
     const offer = await myPeerConnection.createOffer(); // peer A의 offer
     myPeerConnection.setLocalDescription(offer);
     console.log("Sent the offer"); 
     socket.emit("offer", offer, roomName);
 });
 
-socket.on("offer", offer => {
-    console.log(offer);
+socket.on("offer", async (offer) => {   // Peer B가 수행
+    myPeerConnection.setRemoteDescription(offer); // peer의 description을 offer에 세팅?
+    const answer = await myPeerConnection.createAnswer();
+    myPeerConnection.setLocalDescription(answer);
+    socket.emit("answer", answer, roomName);
+})
+
+socket.on("answer", answer => { // Peer A가 수행
+    myPeerConnection.setRemoteDescription(answer);
 })
 
 
