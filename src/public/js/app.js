@@ -81,6 +81,13 @@ function handleCameraClick() {
 
 async function handleCameraChange() {
     await getMedia(camerasSelect.value);
+    if(myPeerConnection) { // 카메라가 바뀌는 경우 peer에도 업데이트
+        const videoTrack = myStream.getVideoTracks()[0]; // 새로 바뀐 트랙을 받아옴
+        const videoSender = myPeerConnection
+            .getSenders()
+            .find(sender => sender.track.kind === "video");
+        videoSender.replaceTrack(videoTrack); // 업데이트
+    }
 }
 
 muteBtn.addEventListener("click", handleMuteClick);
