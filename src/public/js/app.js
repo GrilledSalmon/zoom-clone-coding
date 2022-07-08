@@ -85,7 +85,7 @@ async function handleCameraChange() {
         const videoTrack = myStream.getVideoTracks()[0]; // 새로 바뀐 트랙을 받아옴
         const videoSender = myPeerConnection
             .getSenders()
-            .find(sender => sender.track.kind === "video");
+            .find(sender => sender.track.kind === "video"); // 잘 이해 안감;;
         videoSender.replaceTrack(videoTrack); // 업데이트
     }
 }
@@ -151,7 +151,19 @@ socket.on("ice", ice => {
 // RTC Code
 
 function makeConnection(){
-    myPeerConnection = new RTCPeerConnection();
+    myPeerConnection = new RTCPeerConnection({
+        iceServers: [
+            {
+                urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                ]
+            }
+        ]
+    });
     myPeerConnection.addEventListener("icecandidate", handleIce);
     myPeerConnection.addEventListener("addstream", handleAddStream);
     myStream
