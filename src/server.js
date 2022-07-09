@@ -1,7 +1,6 @@
 import http from "http";
 import SocketIO from "socket.io";
 import express from "express";
-import { doesNotThrow } from "assert";
 
 const app = express();
 
@@ -29,6 +28,9 @@ wsServer.on("connection", socket => {
     })
     socket.on("ice", (ice, roomName) => {
         socket.to(roomName).emit("ice", ice);
+    })
+    socket.on("smile", (peerHp, roomName) => {
+        socket.to(roomName).emit("smile", peerHp);
     })
 })
 

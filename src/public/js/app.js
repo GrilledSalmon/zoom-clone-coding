@@ -4,6 +4,8 @@ const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
 const camerasSelect = document.getElementById("cameras");
+const h2MyHP = document.getElementById("myHP");
+const h2PeerHP = document.getElementById("peerHP");
 
 const call = document.getElementById("call");
 
@@ -14,6 +16,8 @@ let muted = false;
 let cameraOff = false;
 let roomName;   // 현재 위치하고 있는 방
 let myPeerConnection;
+
+
 
 async function getCameras() {
     // 사용 가능한 카메라를 camerasSelect에 담아줌
@@ -31,7 +35,7 @@ async function getCameras() {
             camerasSelect.appendChild(option);
         })
     } catch(e) {
-        console.log(e);
+        console.log(()=>1);
     }
 }
 
@@ -49,6 +53,8 @@ async function getMedia(deviceId) {
             deviceId ? cameraConstraints : initialConstrains
         );
         /** 이 사이에 모델을 넣으면 될듯? */
+        faceapi.nets.tinyFaceDetector.loadFromUri('/public/models')
+        faceapi.nets.faceExpressionNet.loadFromUri('/public/models')
         myFace.srcObject = myStream; // 현재 카메라와 오디오를 브라우저와 연결
         if (!deviceId) {
             await getCameras();
@@ -148,6 +154,10 @@ socket.on("ice", ice => {
     myPeerConnection.addIceCandidate(ice);
 })
 
+socket.on("smile", peerHp => {
+    h2PeerHP.innerText = `Peer HP : ${peerHp}`;
+})
+
 
 // RTC Code
 
@@ -182,3 +192,35 @@ function handleAddStream(data) {
     console.log("Got a Stream form my peer!!");
     peersStream.srcObject = data.stream;
 }
+
+let HP = 100
+
+myFace.addEventListener('play', () => { // 이 함수는 한 번만 실행
+    const canvas = faceapi.createCanvasFromMedia(myFace)
+    document.body.append(canvas)
+    const displaySize = { width: myFace.width, height: myFace.height }
+    faceapi.matchDimensions(canvas, displaySize)
+    setInterval(async () => { // 이 함수는 N[ms]마다 실행
+      const detections = await faceapi.detectAllFaces(myFace, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions() // 모든 얼굴 감지 -> detectSingleFace 사용 고려해보기
+      const resizedDetections = faceapi.resizeResults(detections, displaySize)
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height) // 그렸던 내용을 지워준다고 함.
+      faceapi.draw.drawDetections(canvas, resizedDetections)
+      faceapi.draw.drawFaceExpressions(canvas, resizedDetections)
+      if (detections[0] && HP > 0) {
+        let happiness = detections[0].expressions.happy
+        socket.emit("smile", HP, roomName);
+        if (happiness > 0.6) { // 민감도로 하드모드, 이지모드 설정도 가능할듯
+          HP -= 1;
+        } else if (happiness > 0.2) {
+          HP -= 0.5;
+        }
+      }
+      if (HP > 0) {
+        console.log("HP :", HP);
+      } else {
+        console.log("Game Over!!");
+      }
+      h2MyHP.innerText = `My HP : ${HP}`;
+    }, 100) // 마지막 인자로 얼굴 인식 주기 설정(ms)
+  })
+
