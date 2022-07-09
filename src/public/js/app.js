@@ -48,6 +48,7 @@ async function getMedia(deviceId) {
         myStream = await navigator.mediaDevices.getUserMedia(
             deviceId ? cameraConstraints : initialConstrains
         );
+        /** 이 사이에 모델을 넣으면 될듯? */
         myFace.srcObject = myStream; // 현재 카메라와 오디오를 브라우저와 연결
         if (!deviceId) {
             await getCameras();
